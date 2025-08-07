@@ -1,34 +1,126 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Carte interactive NAVWARN</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-    <style>
-        html, body { margin: 0; height: 100%; }
-        #map { width: 100%; height: 100%; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Carte interactive NAVWARN</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+  />
+  <style>
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+    }
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+    .legend {
+      background: white;
+      padding: 10px;
+      line-height: 1.5;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    .legend span {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 6px;
+      border-radius: 6px;
+    }
+    .active { background: orange; }
+    .corrected { background: green; }
+    .cancelled { background: red; }
+  </style>
 </head>
 <body>
-    <div id="map"></div>
+  <div id="map"></div>
+  <div class="legend">
+    <strong>Légende</strong><br />
+    <span class="active"></span> NAVWARN Actif<br />
+    <span class="corrected"></span> NAVWARN Corrigé<br />
+    <span class="cancelled"></span> NAVWARN Annulé
+  </div>
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([47.5, -70.2], 5);
 
-    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-    <script>
-        var map = L.map('map').setView([47.5, -70.2], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© OpenStreetMap contributors',
+    }).addTo(map);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 18,
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+    // Exemple de données NAVWARN (à remplacer par chargement réel)
+    const navwarns = [
+      {
+        id: 'NAV001',
+        status: 'actif',
+        description: 'Bouée manquante à Québec',
+        unit: 'Griffon',
+        days: 95,
+        lat: 46.81,
+        lon: -71.21,
+        url: 'https://exemple.com/navwarn/NAV001'
+      },
+      {
+        id: 'NAV002',
+        status: 'corrigé',
+        description: 'Lumière manquante à Montréal',
+        unit: 'Mamilossa',
+        days: 10,
+        lat: 45.50,
+        lon: -73.57,
+        url: 'https://exemple.com/navwarn/NAV002'
+      },
+      {
+        id: 'NAV003',
+        status: 'annulé',
+        description: 'Bouée hors position à Toronto',
+        unit: 'Vincent Massey',
+        days: 50,
+        lat: 43.65,
+        lon: -79.38,
+        url: 'https://exemple.com/navwarn/NAV003'
+      }
+    ];
 
-        // Exemple de NAVWARN fictif — remplacer par script dynamique ou GeoJSON
-        var marker = L.marker([46.8139, -71.2080]).addTo(map)
-            .bindPopup("<b>NAVWARN Actif</b><br>ID: QCA0001<br>Unité assignée: Griffon<br><span style='color:red'><b>105 jours actifs</b></span>");
+    // Fonction pour choisir la couleur selon statut
+    function getColor(status) {
+      switch (status) {
+        case 'actif': return 'orange';
+        case 'corrigé': return 'green';
+        case 'annulé': return 'red';
+        default: return 'gray';
+      }
+    }
 
-        var marker2 = L.marker([45.5017, -73.5673]).addTo(map)
-            .bindPopup("<b>NAVWARN Corrigé</b><br>ID: QCA0002<br>Unité assignée: Mamilossa<br><span style='color:green'><b>Corrigé</b></span>");
-    </script>
+    navwarns.forEach(navwarn => {
+      const marker = L.circleMarker([navwarn.lat, navwarn.lon], {
+        radius: 8,
+        color: getColor(navwarn.status),
+        fillColor: getColor(navwarn.status),
+        fillOpacity: 0.8,
+      }).addTo(map);
+
+      let popupContent = `<strong>${navwarn.id}</strong><br/>
+                          <em>Status:</em> ${navwarn.status}<br/>
+                          <em>Description:</em> ${navwarn.description}<br/>
+                          <em>Unité:</em> ${navwarn.unit}<br/>
+                          <em>Jours actifs:</em> ${navwarn.days} jours<br/>
+                          <a href="${navwarn.url}" target="_blank">Voir le NAVWARN</a>`;
+
+      marker.bindPopup(popupContent);
+    });
+  </script>
 </body>
 </html>
